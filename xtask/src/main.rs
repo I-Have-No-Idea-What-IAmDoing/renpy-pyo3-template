@@ -17,9 +17,13 @@ struct Cli {
 enum Commands {
     /// Build and package Ren'Py extension artifacts into the dist directory
     Dist {
-        /// Target platforms: windows, linux, mac, or specific triple (comma-separated or multiple flags)
+        /// Target platforms flag: windows, linux, mac, all, or specific triple
         #[arg(short, long, value_delimiter = ',')]
         targets: Vec<String>,
+
+        /// Target platforms positional argument (e.g. 'xtask dist all' or 'xtask dist windows')
+        #[arg(value_name = "TARGET_POSITIONAL", value_delimiter = ',')]
+        positional_targets: Vec<String>,
 
         /// Specific crates to build (defaults to all cdylib crates)
         #[arg(short, long, value_delimiter = ',')]
@@ -35,9 +39,13 @@ enum Commands {
     },
     /// Build crates without packaging into dist
     Build {
-        /// Target platforms: windows, linux, mac, or specific triple
+        /// Target platforms flag: windows, linux, mac, all, or specific triple
         #[arg(short, long, value_delimiter = ',')]
         targets: Vec<String>,
+
+        /// Target platforms positional argument (e.g. 'xtask build all')
+        #[arg(value_name = "TARGET_POSITIONAL", value_delimiter = ',')]
+        positional_targets: Vec<String>,
 
         /// Specific crates to build
         #[arg(short, long, value_delimiter = ',')]
@@ -451,12 +459,14 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Dist {
             targets,
+            positional_targets,
             crates,
             dist_dir,
             deploy_to_game,
         } => {
-            let active_targets = if !targets.is_empty() {
-                targets
+            let combined_targets: Vec<String> = targets.into_iter().chain(positional_targets).collect();
+            let active_targets = if !combined_targets.is_empty() {
+                combined_targets
             } else if !plugin_cfg.build.targets.is_empty() {
                 plugin_cfg.build.targets
             } else {
@@ -484,9 +494,14 @@ fn main() -> Result<()> {
                 active_deploy.as_deref(),
             )?;
         }
-        Commands::Build { targets, crates } => {
-            let active_targets = if !targets.is_empty() {
-                targets
+        Commands::Build {
+            targets,
+            positional_targets,
+            crates,
+        } => {
+            let combined_targets: Vec<String> = targets.into_iter().chain(positional_targets).collect();
+            let active_targets = if !combined_targets.is_empty() {
+                combined_targets
             } else if !plugin_cfg.build.targets.is_empty() {
                 plugin_cfg.build.targets
             } else {
