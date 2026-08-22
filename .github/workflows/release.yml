@@ -1,0 +1,64 @@
+name: Build & Release Ren'Py Rust Extensions
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu, x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Install Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Install cargo-zigbuild
+        run: cargo install cargo-zigbuild
+
+      - name: Run Multi-Platform Build
+        run: |
+          chmod +x ./build.sh
+          ./build.sh all
+
+      - name: Package Distribution Zip Archives
+        run: |
+          cd dist
+          zip -r ../renpy-python-packages.zip python-packages/
+          zip -r ../renpy-lib-binaries.zip lib/
+          zip -r ../renpy-full-distribution.zip python-packages/ lib/
+          cd ..
+
+      - name: Upload Build Artifacts (CI)
+        uses: actions/upload-artifact@v4
+        with:
+          name: renpy-dist-archives
+          path: |
+            renpy-python-packages.zip
+            renpy-lib-binaries.zip
+            renpy-full-distribution.zip
+
+      - name: Create GitHub Release & Upload Assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            renpy-python-packages.zip
+            renpy-lib-binaries.zip
+            renpy-full-distribution.zip

@@ -1,0 +1,23 @@
+# ==============================================================================
+# Ren'Py PyO3 Plugin Configuration
+# ==============================================================================
+
+[plugin]
+name = "renpy_rust_module"
+version = "0.1.0"
+description = "High-performance PyO3 extension for Ren'Py"
+
+[renpy]
+# Targeted Python runtime version in Ren'Py (e.g. "3.9", "3.12", "3.13")
+python_version = "3.12"
+
+[build]
+# Targets to compile: "windows", "linux-x86_64", "linux-aarch64", "mac-arm64", "mac-x86_64" (or "all")
+targets = ["windows", "linux-x86_64", "linux-aarch64", "mac-arm64", "mac-x86_64"]
+
+# Output directory for distribution artifacts
+dist_dir = "dist"
+
+# Optional: Path to your Ren'Py game project to automatically deploy binaries into
+# deploy_to_game = "/path/to/my_renpy_game"
+deploy_to_game = ""

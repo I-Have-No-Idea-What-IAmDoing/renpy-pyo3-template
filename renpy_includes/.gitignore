@@ -1,0 +1,7 @@
+*.dll
+*.lib
+*.dll.a
+*.exp
+python.def
+!README.md
+!.gitignore
